@@ -404,6 +404,7 @@
                mat4.multiply(m, m, mRoot);
                mat4.rotate(m, m, tiempo, [0, 1, 0]);
                mat4.translate(m, m, [60,0,0]);
+	       mat4.rotate(m, m, -tiempo, [0, 1, 0]);
                drawEarth(m);
                drawMoon(m);
                drawSatellite(m);
