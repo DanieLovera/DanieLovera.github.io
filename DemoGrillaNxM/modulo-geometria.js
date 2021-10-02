@@ -28,12 +28,28 @@
 var superficie3D;
 var mallaDeTriangulos;
 
-var filas = 10;
-var columnas = 10;
+var filas = 50;
+var columnas = 50;
+
+function getUrlVars() {
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi,    
+    function(m,key,value) {
+      vars[key] = value;
+    });
+    return vars;
+  }
+
+var forma = getUrlVars()["forma"];
 
 function crearGeometria(){
-    //superficie3D = new Plano(3, 3);
-    superficie3D = new Esfera(1);
+    if (forma == "esfera") {
+        superficie3D = new Esfera(1);
+    } else if (forma == "tubo") {
+        superficie3D = new TuboSenoidal(1/8, 1/2, 1, 4);
+    } else {
+        superficie3D = new Plano(3, 3);
+    }
     mallaDeTriangulos = generarSuperficie(superficie3D,filas,columnas);
 }
 
@@ -78,6 +94,53 @@ function Esfera(radio) {
         let x = -Math.cos(tita) * Math.cos(fi);
         let y = Math.sin(fi);
         let z = Math.cos(fi) * Math.sin(tita);
+        return [x, y, z];
+    }
+
+    this.getCoordenadasTextura=function(u,v){
+        return [u,v];
+    }
+}
+
+/* Tubo Senoidal
+ * - Si se aumenta la altura del tubo, la amplitud de la onda y longitud se
+ *   mantienen por lo tanto, es como ir revelando cada vez mas una funcion de onda
+ *   que este fija en el plano xy.
+ * - Si se aumenta la amplitud del tubo no se revela nada nuevo de la onda fija,
+ *   ni cambia la longitud de la onda. Unicamente aumenta el radio maximo y minimo
+ *   permitido en la funcion.
+ * - Si se disminuye la longitud de onda, la funcion de onda fija se comprime y
+ *   aparecen nuevas partes dentro de la misma altura del tubo.
+ */
+function TuboSenoidal(amplitud, longitud, radio, altura) {
+    
+    this.getPosicion=function(u, v) {
+        tita = 2 * Math.PI * u;
+    
+        let y = altura * (v - (1/2));
+        let x = ((radio + (amplitud * Math.cos((Math.PI * y) / longitud))) * 
+                  Math.cos(tita));
+        let z = ((radio + (amplitud * Math.cos((Math.PI * y) / longitud))) * 
+                  Math.sin(tita));
+        return [x, y, z];
+    }
+    
+    this.getNormal=function(u,v) {
+        tita = 2 * Math.PI * u;
+        
+        let y = altura * (v - (1/2));
+        let x = Math.cos(tita) / 
+                Math.sqrt(1 + Math.pow(amplitud * 
+                                       Math.sin((Math.PI * y) / longitud) * 
+                                       (altura * Math.PI / longitud), 2));
+        let z = -Math.sin(tita) / 
+                 Math.sqrt(1 + Math.pow(amplitud * 
+                                        Math.sin((Math.PI * y) / longitud) * 
+                                        (altura * Math.PI / longitud), 2));
+        y = amplitud * Math.sin((Math.PI * y) / longitud) / 
+            Math.sqrt(1 + Math.pow(amplitud * 
+                                   Math.sin((Math.PI * y) / longitud) * 
+                                   (altura * Math.PI / longitud), 2));
         return [x, y, z];
     }
 
